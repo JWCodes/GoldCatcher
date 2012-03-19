@@ -8,12 +8,29 @@
 			  left : 30%;
 			  border : thick red solid; }
 
-#player { width : 10%;
-		  height : 15%
+.bomb { width : 10%;
+		height : 10%;
+		top : 1%;
+		background-image : url("bomb.png");
+		background-repeat : no-repeat;
+		background-size : 100%;
+		position : absolute; }
+
+.gold { width : 10%;
+		height : 5%;
+		background-image : url("gold.png");
+		background-repeat : no-repeat;
+		background-size : 100%;
+		position : absolute; }
+
+#player { width : 20%;
+		  height : 25%;
 		  position : absolute;
 		  bottom : 5%; 
-		  left : 40%; }
-
+		  left : 40%;
+		  background-image : url("player.png"); 
+		  background-repeat : no-repeat;
+		  background-size : 100%; }
 
 #aRight { width : 20%;
 		  position : absolute;
