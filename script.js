@@ -1,79 +1,101 @@
-Message = { NoMessage : 0, GoRight : 1, GoLeft : 2 };
+PlayerCommand = { DontMove : 0, GoRight : 1, GoLeft : 2 };
 
-var message;
+var BORDER_LIMIT_PERC = 1;
+var REFRESH_RATE_MS = 42;
+var REFRESHES_BEETWEEN_BOMBS = 60;
+var BOMB_DIMENSION_PERC = 10;
+var PLAYER_WIDTH_PERC = 20;
+
+var playerCommand;
 var currentPlayerLeftPerc = 40;
+var loopRepeats = 1;
+var bombsLeft = [0,0,0,0,0];
+var bombsTop = [0,0,0,0,0];
+var activeBombs = [false, false, false, false, false];
 
 function Start()
 {
 	AddEventListeners();
-	setTimeout(function () { GenerateBomb(); }, 3000);
 	MainLoop();
 }
 
-function GenerateBomb()
+function GenerateBomb(bombId)
 {
-	setTimeout(function () { GenerateBomb(); }, 3000);
-	
-	var bomb1 = document.getElementById("bomb1");
-	var bomb2 = document.getElementById("bomb2");
-	var bomb3 = document.getElementById("bomb3");
-	var bomb4 = document.getElementById("bomb4");
-	var bomb5 = document.getElementById("bomb5");
-	
-	if (bomb1.style.top == "1%")
+	if (activeBombs[bombId] == false)
 	{
-		bomb1.style.left = Math.floor(Math.random() * 101) + "%";
-		return;
+		bombsTop[bombId] = 0;
+		bombsLeft[bombId] = Math.floor(Math.random() * (100 - BOMB_DIMENSION_PERC + (2 * BORDER_LIMIT_PERC))) + BORDER_LIMIT_PERC;
+		activeBombs[bombId] = true;
+		return true;
 	}
-	else if (bomb2.style.top == "0%")
+	return false;
+}
+
+function ProccessFallingItem(bombId)
+{
+	if (activeBombs[bombId] == true)
 	{
-		bomb2.style.left = Math.floor(Math.random() * 101) + "%";
-		return;
+		bombsTop[bombId]++;
+		if (bombsTop[bombId] == 100 - (BOMB_DIMENSION_PERC + BORDER_LIMIT_PERC))
+			activeBombs[bombId] = false;
 	}
-	else if (bomb3.style.top == "0%")
-	{
-		bomb3.style.left = Math.floor(Math.random() * 101) + "%";
-		return;
-	}
-	else if (bomb4.style.top == "0%")
-	{
-		bomb4.style.left = Math.floor(Math.random() * 101) + "%";
-		return;
-	}
-	else if (bomb5.style.top == "0%")
-	{
-		bomb5.style.left = Math.floor(Math.random() * 101) + "%";
-		return;
-	}
+}
+
+function SaveToCSS(bombId)
+{
+	var bomb = document.getElementById("bomb" + (bombId + 1));
+	bomb.style.top = bombsTop[bombId] + "%";
+	bomb.style.left = bombsLeft[bombId] + "%";
+	if ((activeBombs[bombId] == true))
+		bomb.style.display = "block";
+	else
+		bomb.style.display = "none";
 }
 
 function MainLoop()
 {
-	setTimeout(function () { MainLoop(); }, 42);
+	setTimeout(function () { MainLoop(); }, REFRESH_RATE_MS);
 	
-	switch (message)
+	var bombGenerated = false;
+	for (var i = 0;i < 5;i++)
 	{
-		case Message.GoRight:
-			if (currentPlayerLeftPerc < 79)
+		if (!bombGenerated)
+			if (loopRepeats % REFRESHES_BEETWEEN_BOMBS == 0)
+				bombGenerated = GenerateBomb(i);
+		
+		ProccessFallingItem(i);
+		SaveToCSS(i);
+	}
+	
+	if (playerCommand == PlayerCommand.GoRight)
+	{
+		if (currentPlayerLeftPerc < 100 - (PLAYER_WIDTH_PERC + BORDER_LIMIT_PERC))
 				currentPlayerLeftPerc++;
-		break;
-		case Message.GoLeft:
-			if (currentPlayerLeftPerc > 1)
+	}
+	else if (playerCommand == PlayerCommand.GoLeft)
+	{
+			if (currentPlayerLeftPerc > BORDER_LIMIT_PERC)
 				currentPlayerLeftPerc--;
-		break;
 	}
 	
 	document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
+	
+	loopRepeats++;
+}
+
+function isCollide(a, b)
+{
+    return !(((a.y + a.height) < (b.y)) || (a.y > (b.y + b.height)) || ((a.x + a.width) < b.x) || (a.x > (b.x + b.width)));
 }
 
 function AddEventListeners()
 {
-	document.getElementById("aRight").addEventListener("mousedown", function () { message = Message.GoRight; });
-	document.getElementById("aLeft").addEventListener("mousedown", function () { message = Message.GoLeft; });
+	document.getElementById("aRight").addEventListener("mousedown", function () { playerCommand = PlayerCommand.GoRight; });
+	document.getElementById("aLeft").addEventListener("mousedown", function () { playerCommand = PlayerCommand.GoLeft; });
 	
-	document.getElementById("aRight").addEventListener("mouseup", function () { message = Message.NoMessage; });
-	document.getElementById("aLeft").addEventListener("mouseup", function () { message = Message.NoMessage; });
+	document.getElementById("aRight").addEventListener("mouseup", function () { playerCommand = PlayerCommand.DontMove; });
+	document.getElementById("aLeft").addEventListener("mouseup", function () { playerCommand = PlayerCommand.DontMove; });
 	
-	document.getElementById("aRight").addEventListener("mouseout", function () { message = Message.NoMessage; });
-	document.getElementById("aLeft").addEventListener("mouseout", function () { message = Message.NoMessage; });
+	document.getElementById("aRight").addEventListener("mouseout", function () { playerCommand = PlayerCommand.DontMove; });
+	document.getElementById("aLeft").addEventListener("mouseout", function () { playerCommand = PlayerCommand.DontMove; });
 }

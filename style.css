@@ -13,6 +13,7 @@
 		top : 1%;
 		background-image : url("bomb.png");
 		background-repeat : no-repeat;
+		display : none;
 		background-size : 100%;
 		position : absolute; }
 
@@ -20,11 +21,12 @@
 		height : 5%;
 		background-image : url("gold.png");
 		background-repeat : no-repeat;
+		display : none;
 		background-size : 100%;
 		position : absolute; }
 
 #player { width : 20%;
-		  height : 25%;
+		  height : 16%;
 		  position : absolute;
 		  bottom : 5%; 
 		  left : 40%;
