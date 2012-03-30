@@ -8,8 +8,16 @@
 		<SCRIPT text="text/javascript" src="script.js"></SCRIPT>
 		<DIV class="gameArea">
 			<IMG id="aLeft" src="arrowLeft.png" alt="Arrow Left" />
+			<IMG id="aRight" src="arrowRight.png" alt="Arrow Right" />
+			
+			<DIV class="gameOptionsPanel">
+				<IMG src="PauseButton.png" class="panelButton" id="ppButton" alt="Pause Button" />
+				<IMG src="RestartButton.png" class="panelButton" id="rsButton" alt="Restart Button" />
+			</DIV>
 			
 			<DIV class="playerArea">
+				<DIV id="infoPanel"></DIV>
+				
 				<DIV id="bomb1" class="bomb"></DIV>
 				<DIV id="bomb2" class="bomb"></DIV>
 				<DIV id="bomb3" class="bomb"></DIV>
@@ -22,8 +30,7 @@
 			
 				<DIV id="player"></DIV>
 			</DIV>
-			
-			<IMG id="aRight" src="arrowRight.png" alt="Arrow Right" />
+
 		</DIV>
 		<SCRIPT text="text/javascript">onLoad = Start();</SCRIPT>
 	</BODY>

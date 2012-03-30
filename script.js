@@ -6,17 +6,49 @@ var REFRESHES_BEETWEEN_BOMBS = 60;
 var BOMB_DIMENSION_PERC = 10;
 var PLAYER_WIDTH_PERC = 20;
 
+var isPaused = false;
 var playerCommand;
-var currentPlayerLeftPerc = 40;
-var loopRepeats = 1;
-var bombsLeft = [0,0,0,0,0];
-var bombsTop = [0,0,0,0,0];
-var activeBombs = [false, false, false, false, false];
+var currentPlayerLeftPerc;
+var loopRepeats;
+var bombsLeft;
+var bombsTop;
+var activeBombs;
 
 function Start()
 {
 	AddEventListeners();
+	RestartGame();
 	MainLoop();
+}
+
+function PauseGame()
+{	
+	isPaused = !isPaused;
+	
+	var pButton = document.getElementById("ppButton");
+	
+	if (isPaused)
+		pButton.src = "PlayButton.png";
+	else
+		pButton.src = "PauseButton.png";
+}
+
+function RestartGame()
+{
+	playerCommand = PlayerCommand.DontMove;
+	currentPlayerLeftPerc = 40;
+	loopRepeats = 1;
+	bombsLeft = [0,0,0,0,0];
+	bombsTop = [0,0,0,0,0];
+	activeBombs = [false, false, false, false, false];
+	
+	document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
+	
+	SaveToCSS(0);
+	SaveToCSS(1);
+	SaveToCSS(2);
+	SaveToCSS(3);
+	SaveToCSS(4);
 }
 
 function GenerateBomb(bombId)
@@ -24,7 +56,7 @@ function GenerateBomb(bombId)
 	if (activeBombs[bombId] == false)
 	{
 		bombsTop[bombId] = 0;
-		bombsLeft[bombId] = Math.floor(Math.random() * (100 - BOMB_DIMENSION_PERC + (2 * BORDER_LIMIT_PERC))) + BORDER_LIMIT_PERC;
+		bombsLeft[bombId] = Math.floor(Math.random() * (100 - (BOMB_DIMENSION_PERC + (2 * BORDER_LIMIT_PERC)))) + BORDER_LIMIT_PERC;
 		activeBombs[bombId] = true;
 		return true;
 	}
@@ -55,32 +87,35 @@ function SaveToCSS(bombId)
 function MainLoop()
 {
 	setTimeout(function () { MainLoop(); }, REFRESH_RATE_MS);
-	
-	var bombGenerated = false;
-	for (var i = 0;i < 5;i++)
-	{
-		if (!bombGenerated)
-			if (loopRepeats % REFRESHES_BEETWEEN_BOMBS == 0)
-				bombGenerated = GenerateBomb(i);
 		
-		ProccessFallingItem(i);
-		SaveToCSS(i);
-	}
-	
-	if (playerCommand == PlayerCommand.GoRight)
+	if (!isPaused)
 	{
-		if (currentPlayerLeftPerc < 100 - (PLAYER_WIDTH_PERC + BORDER_LIMIT_PERC))
-				currentPlayerLeftPerc++;
+		var bombGenerated = false;
+		for (var i = 0;i < 5;i++)
+		{
+			if (!bombGenerated)
+				if (loopRepeats % REFRESHES_BEETWEEN_BOMBS == 0)
+					bombGenerated = GenerateBomb(i);
+			
+			ProccessFallingItem(i);
+			SaveToCSS(i);
+		}
+		
+		if (playerCommand == PlayerCommand.GoRight)
+		{
+				if (currentPlayerLeftPerc < 100 - (PLAYER_WIDTH_PERC + BORDER_LIMIT_PERC))
+					currentPlayerLeftPerc++;
+		}
+		else if (playerCommand == PlayerCommand.GoLeft)
+		{
+				if (currentPlayerLeftPerc > BORDER_LIMIT_PERC)
+					currentPlayerLeftPerc--;
+		}
+		
+		document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
+		
+		loopRepeats++;
 	}
-	else if (playerCommand == PlayerCommand.GoLeft)
-	{
-			if (currentPlayerLeftPerc > BORDER_LIMIT_PERC)
-				currentPlayerLeftPerc--;
-	}
-	
-	document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
-	
-	loopRepeats++;
 }
 
 function isCollide(a, b)
@@ -98,4 +133,7 @@ function AddEventListeners()
 	
 	document.getElementById("aRight").addEventListener("mouseout", function () { playerCommand = PlayerCommand.DontMove; });
 	document.getElementById("aLeft").addEventListener("mouseout", function () { playerCommand = PlayerCommand.DontMove; });
+	
+	document.getElementById("ppButton").addEventListener("click", function () { PauseGame(); });
+	document.getElementById("rsButton").addEventListener("click", function () { RestartGame(); });
 }
