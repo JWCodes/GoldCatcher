@@ -2,17 +2,18 @@ PlayerCommand = { DontMove : 0, GoRight : 1, GoLeft : 2 };
 
 var BORDER_LIMIT_PERC = 1;
 var REFRESH_RATE_MS = 42;
-var REFRESHES_BEETWEEN_BOMBS = 60;
+var REFRESHES_BEETWEEN_FALLS = 60;
 var BOMB_DIMENSION_PERC = 10;
 var PLAYER_WIDTH_PERC = 20;
+var PLAYER_HEIGHT_PERC = 16;
+var PLAYER_Y = 21;
+var BOMBS_COUNT = 5;
 
 var isPaused = false;
 var playerCommand;
 var currentPlayerLeftPerc;
 var loopRepeats;
-var bombsLeft;
-var bombsTop;
-var activeBombs;
+var fallingItems = [0,0,0,0,0,0,0,0];
 
 function Start()
 {
@@ -38,50 +39,55 @@ function RestartGame()
 	playerCommand = PlayerCommand.DontMove;
 	currentPlayerLeftPerc = 40;
 	loopRepeats = 1;
-	bombsLeft = [0,0,0,0,0];
-	bombsTop = [0,0,0,0,0];
-	activeBombs = [false, false, false, false, false];
+	
+	for (var i = 0;i < BOMBS_COUNT;i++)
+	{
+		fallingItems[i] = new Object();
+		fallingItems[i].Top = 0;
+		fallingItems[i].Left = 0;
+		fallingItems[i].Active = false;
+		SaveToCSS(i);
+	}
 	
 	document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
-	
-	SaveToCSS(0);
-	SaveToCSS(1);
-	SaveToCSS(2);
-	SaveToCSS(3);
-	SaveToCSS(4);
 }
 
-function GenerateBomb(bombId)
+function GenerateItem(itemId)
 {
-	if (activeBombs[bombId] == false)
+	if (itemId > BOMBS_COUNT)
+		return false;
+		
+	if (fallingItems[itemId].Active == false)
 	{
-		bombsTop[bombId] = 0;
-		bombsLeft[bombId] = Math.floor(Math.random() * (100 - (BOMB_DIMENSION_PERC + (2 * BORDER_LIMIT_PERC)))) + BORDER_LIMIT_PERC;
-		activeBombs[bombId] = true;
+		fallingItems[itemId].Top = 0;
+		fallingItems[itemId].Left = Math.floor(Math.random() * (100 - (BOMB_DIMENSION_PERC + (2 * BORDER_LIMIT_PERC)))) + BORDER_LIMIT_PERC;
+		fallingItems[itemId].Active = true;
 		return true;
 	}
 	return false;
 }
 
-function ProccessFallingItem(bombId)
+function ProccessFallingItem(itemId)
 {
-	if (activeBombs[bombId] == true)
+	if (fallingItems[itemId].Active == true)
 	{
-		bombsTop[bombId]++;
-		if (bombsTop[bombId] == 100 - (BOMB_DIMENSION_PERC + BORDER_LIMIT_PERC))
-			activeBombs[bombId] = false;
+		fallingItems[itemId].Top++;
+		if (fallingItems[itemId].Top == 100 - (BOMB_DIMENSION_PERC + BORDER_LIMIT_PERC))
+			fallingItems[itemId].Active = false;
 	}
 }
 
-function SaveToCSS(bombId)
+function SaveToCSS(itemId)
 {
-	var bomb = document.getElementById("bomb" + (bombId + 1));
-	bomb.style.top = bombsTop[bombId] + "%";
-	bomb.style.left = bombsLeft[bombId] + "%";
-	if ((activeBombs[bombId] == true))
-		bomb.style.display = "block";
+	var item = document.getElementById("bomb" + (itemId + 1));
+		
+	item.style.top = fallingItems[itemId].Top + "%";
+	item.style.left = fallingItems[itemId].Left + "%";
+	
+	if ((fallingItems[itemId].Active == true))
+		item.style.display = "block";
 	else
-		bomb.style.display = "none";
+		item.style.display = "none";
 }
 
 function MainLoop()
@@ -89,38 +95,40 @@ function MainLoop()
 	setTimeout(function () { MainLoop(); }, REFRESH_RATE_MS);
 		
 	if (!isPaused)
-	{
-		var bombGenerated = false;
-		for (var i = 0;i < 5;i++)
-		{
-			if (!bombGenerated)
-				if (loopRepeats % REFRESHES_BEETWEEN_BOMBS == 0)
-					bombGenerated = GenerateBomb(i);
-			
-			ProccessFallingItem(i);
-			SaveToCSS(i);
-		}
-		
-		if (playerCommand == PlayerCommand.GoRight)
-		{
-				if (currentPlayerLeftPerc < 100 - (PLAYER_WIDTH_PERC + BORDER_LIMIT_PERC))
-					currentPlayerLeftPerc++;
-		}
-		else if (playerCommand == PlayerCommand.GoLeft)
-		{
-				if (currentPlayerLeftPerc > BORDER_LIMIT_PERC)
-					currentPlayerLeftPerc--;
-		}
-		
-		document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
-		
+	{	
+		ProccessGameLogics();
+		ProccessPlayerMovement();
 		loopRepeats++;
 	}
 }
 
-function isCollide(a, b)
+function ProccessGameLogics()
 {
-    return !(((a.y + a.height) < (b.y)) || (a.y > (b.y + b.height)) || ((a.x + a.width) < b.x) || (a.x > (b.x + b.width)));
+	for (var i = 0;i < BOMBS_COUNT - 1;i++);
+	{
+		var bombGenerated = false;
+		if ((!bombGenerated))
+				bombGenerated = GenerateItem(i);
+				
+		ProccessFallingItem(i);
+		SaveToCSS(i);
+	}
+}
+
+function ProccessPlayerMovement()
+{
+	if (playerCommand == PlayerCommand.GoRight)
+	{
+			if (currentPlayerLeftPerc < 100 - (PLAYER_WIDTH_PERC + BORDER_LIMIT_PERC))
+				currentPlayerLeftPerc++;
+	}
+	else if (playerCommand == PlayerCommand.GoLeft)
+	{
+			if (currentPlayerLeftPerc > BORDER_LIMIT_PERC)
+				currentPlayerLeftPerc--;
+	}
+	
+	document.getElementById("player").style.left = currentPlayerLeftPerc + "%";
 }
 
 function AddEventListeners()
